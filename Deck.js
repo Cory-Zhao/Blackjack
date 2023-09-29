@@ -13,7 +13,7 @@ export default class Deck {
     readJSON() {
         this.cards = data.reduce((acc, obj) => {
             acc[obj.id] = {
-              name: `${obj.rank} of ${obj.suit}`,
+              name: `${obj.rank}_of_${obj.suit}`,
               imageSource: obj.imageSource,
               value: obj.value,
             };

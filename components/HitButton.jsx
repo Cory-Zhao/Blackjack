@@ -1,10 +1,10 @@
 import {StyleSheet, View, Pressable, Text} from 'react-native'
-import React, {useState, Component} from 'react';
+import React, {useState} from 'react';
 
 
 
-export default function HitButton({label, onClick}) {
-    const [text, setText] = useState(label);
+export default function HitButton({onClick}) {
+    const [text, setText] = useState('Hit');
     return (
         <View style = {styles.buttonContainer}>
             <Pressable onPress={() => {setText("Here"), onClick()}} style = {[styles.button, {backgroundColor: '#4fc978'}]}>

@@ -1,14 +1,27 @@
-import { StatusBar } from 'expo-status-bar';
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useReducer} from 'react';
 import { StyleSheet, Text, View, TouchableHighlight, Image, SafeAreaView, Alert, Pressable } from 'react-native';
 import HitButton from './components/HitButton';
 import StandButton from './components/StandButton';
+import PlayerMoney from './components/PlayerMoney';
+import BetResult from './components/BetResult';
+import Description from './components/Description';
+import CardImages from './components/CardImages';
 import Deck from './Deck';
 import Hand from './Hand';
-import CardImage from './components/CardImage';
-import PlayerMoney from './components/PlayerMoney';
-
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+//We may be able to delete the 'imageSource' section from the deck.json
+
+const reducerMethod = (state, action) => {
+  switch(action.type) {
+    case 'addCard': {
+      return state.addCard({name: '10 of clubs', value: [1]});
+    }
+    case 'getHand': {
+      return state.getHand();
+    }
+  }
+}
 
 
 export default function App() {
@@ -17,10 +30,16 @@ export default function App() {
   const [gameStarted, setGameStarted] = useState(false);
   const [roundStarted, setRoundStarted] = useState(false);
   const [deck, setDeck] = useState(new Deck());
-  const [playerHand, setPlayerHand] = useState(new Hand());
-  const [casinoHand, setCasinoHand] = useState( new Hand());
+  //const [playerHand, setPlayerHand] = useState(new Hand());
+  let ex1 = new Hand()
+  const [playerHand, dispatch1] = useReducer(reducerMethod, ex1);
+  //const [casinoHand, setCasinoHand] = useState(new Hand());
+  const [casinoHand, dispatch2] = useReducer(reducerMethod, new Hand());
+  const [betAmount, setBetAmount] = useState(0);
   const [playerMoney, setPlayerMoney] = useState(0);
   const [roundResult, setRoundResult] = useState(1);
+
+  
 
   const resultMap = {
     0: 'You Win!',
@@ -36,21 +55,32 @@ export default function App() {
 
   if (roundStarted === false) {
     setRoundStarted(true);
-    playerHand.addCard(deck.popTopCard());
+    dispatch1({
+      type: 'addCard',
+    })
+    /*playerHand.addCard(deck.popTopCard());
     casinoHand.addCard(deck.popTopCard());
     playerHand.addCard(deck.popTopCard());
     casinoHand.addCard(deck.popTopCard());
 
     setPlayerHand({...playerHand});
-    setCasinoHand({...casinoHand});
+    setCasinoHand({...casinoHand});*/
   }
 
-  const onHit = () => {
+  const handleHit = () => {
+    console.log("HIT");
     playerHand.addCard(deck.popTopCard());
-
+    /*playerHand.addCard(deck.popTopCard());
     setPlayerHand({...playerHand});
+    
+    if (playerHand.getValue() > 21) {
+      setRoundResult(2);
+    }*/
   }
-  
+
+  const handleStand = () => {
+    casinoHand.addCard(deck.popTopCard());
+  }
 
 
 
@@ -82,37 +112,30 @@ export default function App() {
     getPlayerMoney();
   }, []);
   console.log(deck);
-  console.log(playerHand);
-  console.log(casinoHand);
+  console.log('Player Hand', playerHand);
+  console.log('Casino Hand', casinoHand);
+  console.log('roundPosition: ', roundStarted);
+  console.log('roundResult: ', roundResult);
 
   return (
     <>
       <SafeAreaView style = {{flex: 1, backgroundColor: 'black'}}>
-        <View style={[styles.container]}>
-          <View style = {styles.casinoContainer}>
-            <Text>
-              Hello
-            </Text>
-          </View>
-          <View style = {styles.betAmountContainer}>
+        <View style={styles.gameContainer}>
+          <CardImages placeholderImageSource={dispatch2({type:'getHand', hand: ex1})} type={'casino'}/>
+          <Description/>
+          <BetResult amount={betAmount} roundPosition={roundStarted} roundResult={resultMap[roundResult]}/>
+          <CardImages placeholderImageSource={dispatch1({type:'getHand'})} type={'player'}/>
 
-          </View>
-          <View style = {styles.playerContainer}>
-            <CardImage placeholderImageSource={[ './assets/jack_of_hearts.png', './assets/2_of_clubs.png']}/>
-            <CardImage placeholderImageSource={[ './assets/jack_of_hearts.png', './assets/2_of_clubs.png']}/>
-          </View>
-          
           <View style = {styles.buttonsContainer}>
             <HitButton 
-              label = {"HIT"}
-              onClick={onHit}
+              onClick={handleHit}
             />
             <StandButton 
-              label = {"STAND"}
-              onClick={onHit}
+              onClick={handleStand}
             />
           </View>
         </View>
+
         <View style = {styles.bankContainer}>
           <PlayerMoney amount={playerMoney}/>
         </View>
@@ -124,9 +147,9 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  gameContainer: {
     flex: 15,
-    backgroundColor: '#00c04b',
+    backgroundColor: '#008631',
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'column',
@@ -137,23 +160,7 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
     justifyContent: 'center'
   },
-  casinoContainer: {
-    flex: 6,
-    backgroundColor: 'red',
-    padding: 10,
-  },
-  betAmountContainer: {
-    flex: 1,
-    backgroundColor: 'pink',
-    alignSelf: 'stretch',
-  },
-  playerContainer: {
-    flex: 9,
-    backgroundColor: 'purple',
-    flexDirection: 'row',
-  },
   buttonsContainer: {
-    flex: 5,
-    backgroundColor: 'blue'
+    flex: 6,
   }
 });

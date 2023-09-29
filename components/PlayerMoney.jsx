@@ -1,11 +1,11 @@
-import {StyleSheet, View, Pressable, Text} from 'react-native'
-import React, {useState, Component} from 'react';
+import {StyleSheet, View, Text} from 'react-native'
+import React from 'react';
 
 
 
 export default function PlayerMoney({amount}) {
     return (
-       <View style = {styles.moneyContainer}>
+       <View style = {styles.container}>
             <View style = {styles.window}>
                 <Text style = {styles.textLabel}>{`$${amount}`}</Text>
             </View>
@@ -14,7 +14,7 @@ export default function PlayerMoney({amount}) {
 }
 
 const styles = StyleSheet.create({
-    moneyContainer: {
+    container: {
         width: 175,
         height: 40,
         alignSelf: 'center',

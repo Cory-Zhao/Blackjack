@@ -1,8 +1,8 @@
 import {StyleSheet, View, Pressable, Text} from 'react-native'
-import React, {useState, Component} from 'react';
+import React, {useState} from 'react';
 
-export default function StandButton({label, onClick}) {
-    const [text, setText] = useState(label);
+export default function StandButton({onClick}) {
+    const [text, setText] = useState('Stand');
     return (
         <View style = {[styles.buttonContainer, {borderWidth: 4, borderColor: 'white', borderRadius: 18, marginTop: 10}]}>
             <Pressable onPress={() => {setText("Here"), onClick()}} style = {[styles.button, {backgroundColor: '#ee7600'}]}>

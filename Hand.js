@@ -17,10 +17,14 @@ export default class Hand {
         this.handValue = [...newPossibleValues];
     }
     addCard(newCard) {
-        this.hand.push(newCard);
+        console.log("ADDED CARD");
+        this.hand.push(newCard.name);
         this.calculateValue(newCard);
     }
-    value() {
+    getHand() {
+        return this.hand;
+    }
+    getValue() {
         return this.handValue;
     }
 }
