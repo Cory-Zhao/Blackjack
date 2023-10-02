@@ -18,11 +18,10 @@ let deck = new Deck();
 
 export default function App() {
   console.log("App Rerendered"); 
-  const [gameStarted, setGameStarted] = useState(false);
   const [roundStarted, setRoundStarted] = useState(false);
   const [betAmount, setBetAmount] = useState(0);
   const [playerMoney, setPlayerMoney] = useState(0);
-  const [roundResult, setRoundResult] = useState(1);
+  const [roundResult, setRoundResult] = useState(4);
   const [player, setPlayer] = useState({'hand': [], 'value': [0]});
   const [casino, setCasino] = useState({'hand': [], 'value': [0]});
 
@@ -42,18 +41,35 @@ export default function App() {
     0: 'You Win!',
     1: 'Pushed',
     2: 'You Lose :(',
-    3: 'BLACKJACK!!!'
+    3: 'BLACKJACK!!!',
+    4: 'Welcome to Blackjack'
   }
 
-  if (gameStarted === false) {
-    setGameStarted(true);    
-    console.log(deck);
+  const calculateWinnings = (result) => {
+    if (result === 0) {
+      savePlayerMoney(playerMoney + (2 * betAmount));
+    }
+    else if (result === 1) {
+      savePlayerMoney(playerMoney + betAmount);
+    }
+    else if (result === 3) {
+      savePlayerMoney(player + (3/2) * betAmount);
+    }
   }
 
   const endRound = (result) => {
     setRoundResult(result);
     setRoundStarted(false);
     deck.endRound();
+  }
+
+  const emptyHands = () => {
+    player.hand.splice(0, player.hand.length);
+    casino.hand.splice(0, casino.hand.length);
+    player.value.splice(0, player.value.length, 0);
+    casino.value.splice(0, casino.value.length, 0);
+    setPlayer({...player});
+    setCasino({...casino});
   }
 
   const handleHit = () => {
@@ -96,6 +112,8 @@ export default function App() {
 
   const handleDeal = () => {
     setRoundStarted(true);
+    emptyHands();
+    savePlayerMoney(playerMoney - betAmount);
     for (let i = 0; i < 2; i++) {
       const { name: playerCardName, value: playerCardValue } = deck.popTopCard();
       player.hand.push(playerCardName);
@@ -126,7 +144,6 @@ export default function App() {
       console.error('Error getting player money:', error);
     }
   };
-  console.log(casino);
 
   // Save the player's money to AsyncStorage and update the state
   const savePlayerMoney = async (amount) => {
@@ -142,6 +159,7 @@ export default function App() {
   useEffect(() => {
     getPlayerMoney();
   }, []);
+
   console.log(deck);
   console.log('Player', player);
   console.log('Casino', casino);
@@ -156,9 +174,8 @@ export default function App() {
             <CardImages placeholderImageSource={casino.hand} type={'casino'}/>
             <Description/>
             <BetResult amount={betAmount} roundPosition={roundStarted} roundResult={resultMap[roundResult]}/>
-            {roundStarted === true ? <CardImages placeholderImageSource={player.hand} type={'player'}/> : <EnterBet onTextChange={handleBetAmount} onDeal={handleDeal}/>}
-            <DoubleHitButtons onClick={handleHit}/>
-            <SplitStandButtons onClick={handleStand}/>
+            <CardImages placeholderImageSource={player.hand} type={'player'}/>
+            {roundStarted === true ? <><DoubleHitButtons onClick={handleHit}/><SplitStandButtons onClick={handleStand}/></> : <EnterBet onTextChange={handleBetAmount} onDeal={handleDeal}/>}
           </View>
 
           <View style = {styles.bankContainer}>

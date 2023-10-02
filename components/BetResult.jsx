@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
     textLabel: {
         fontFamily: 'Arial',
         fontWeight: '700',
-        fontSize: 16
+        fontSize: 15
     },
     
 })
