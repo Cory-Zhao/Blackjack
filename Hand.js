@@ -28,3 +28,6 @@ export default class Hand {
         return this.handValue;
     }
 }
+export function hello() {
+    console.log("HEllo");
+}

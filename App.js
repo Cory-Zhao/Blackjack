@@ -1,88 +1,118 @@
-import React, {useState, useEffect, useReducer} from 'react';
-import { StyleSheet, Text, View, TouchableHighlight, Image, SafeAreaView, Alert, Pressable } from 'react-native';
-import HitButton from './components/HitButton';
-import StandButton from './components/StandButton';
+import React, {useState, useEffect} from 'react';
+import { StyleSheet, Text, View, TouchableWithoutFeedback, SafeAreaView, Keyboard } from 'react-native';
+import DoubleHitButtons from './components/DoubleHitButtons';
+import SplitStandButtons from './components/SplitStandButtons';
 import PlayerMoney from './components/PlayerMoney';
 import BetResult from './components/BetResult';
 import Description from './components/Description';
 import CardImages from './components/CardImages';
+import EnterBet from './components/EnterBet';
 import Deck from './Deck';
-import Hand from './Hand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+//For some odd reason, states can only be set by mutating the original state and cannot be assigned a new object
 //We may be able to delete the 'imageSource' section from the deck.json
 
-const reducerMethod = (state, action) => {
-  switch(action.type) {
-    case 'addCard': {
-      return state.addCard({name: '10 of clubs', value: [1]});
-    }
-    case 'getHand': {
-      return state.getHand();
-    }
-  }
-}
 
+let deck = new Deck();
 
 export default function App() {
   console.log("App Rerendered"); 
-
   const [gameStarted, setGameStarted] = useState(false);
   const [roundStarted, setRoundStarted] = useState(false);
-  const [deck, setDeck] = useState(new Deck());
-  //const [playerHand, setPlayerHand] = useState(new Hand());
-  let ex1 = new Hand()
-  const [playerHand, dispatch1] = useReducer(reducerMethod, ex1);
-  //const [casinoHand, setCasinoHand] = useState(new Hand());
-  const [casinoHand, dispatch2] = useReducer(reducerMethod, new Hand());
   const [betAmount, setBetAmount] = useState(0);
   const [playerMoney, setPlayerMoney] = useState(0);
   const [roundResult, setRoundResult] = useState(1);
+  const [player, setPlayer] = useState({'hand': [], 'value': [0]});
+  const [casino, setCasino] = useState({'hand': [], 'value': [0]});
 
-  
+  const calculateValue = (hand, newCard) => {
+    const newPossibleValues = new Set();
+    for (const possibleValue of hand) {
+        for (const cardValue of newCard) {
+            if (possibleValue + cardValue <= 21) {
+                newPossibleValues.add(possibleValue + cardValue);
+            }
+        }
+    }
+    return [...newPossibleValues];
+  }
 
   const resultMap = {
     0: 'You Win!',
     1: 'Pushed',
-    2: 'You Lose'
+    2: 'You Lose :(',
+    3: 'BLACKJACK!!!'
   }
 
   if (gameStarted === false) {
     setGameStarted(true);    
     console.log(deck);
   }
-  
 
-  if (roundStarted === false) {
-    setRoundStarted(true);
-    dispatch1({
-      type: 'addCard',
-    })
-    /*playerHand.addCard(deck.popTopCard());
-    casinoHand.addCard(deck.popTopCard());
-    playerHand.addCard(deck.popTopCard());
-    casinoHand.addCard(deck.popTopCard());
-
-    setPlayerHand({...playerHand});
-    setCasinoHand({...casinoHand});*/
+  const endRound = (result) => {
+    setRoundResult(result);
+    setRoundStarted(false);
+    deck.endRound();
   }
 
   const handleHit = () => {
     console.log("HIT");
-    playerHand.addCard(deck.popTopCard());
-    /*playerHand.addCard(deck.popTopCard());
-    setPlayerHand({...playerHand});
-    
-    if (playerHand.getValue() > 21) {
-      setRoundResult(2);
-    }*/
+    const { name: playerCardName, value: playerCardValue } = deck.popTopCard();
+    player.hand.push(playerCardName);
+    player.value.splice(0, player.value.length, ...calculateValue(player.value, playerCardValue));
+    setPlayer({...player});
+
+    if (player.value.length === 0) {
+      endRound(2);
+    }
   }
 
   const handleStand = () => {
-    casinoHand.addCard(deck.popTopCard());
+    console.log("STAND");
+    while (Math.max(...casino.value) < 17 && casino.value.length > 0) {
+      console.log('CASINO', casino);
+      console.log(Math.max(...casino.value))
+      const { name: casinoCardName, value: casinoCardValue } = deck.popTopCard();
+      casino.hand.push(casinoCardName);
+      casino.value.splice(0, casino.value.length, ...calculateValue(casino.value, casinoCardValue));
+      setCasino({...casino});
+    }
+    if (casino.value.length === 0 || Math.max(...casino.value) < Math.max(...player.value)) {
+      endRound(0);
+    }
+    else if (Math.max(...casino.value) == Math.max(...player.value)) {
+      endRound(1);
+    }
+    else {
+      endRound(2);
+    }
   }
 
+  const handleBetAmount = (amount) => {
+    setBetAmount(amount);
+    console.log("Bet Amount: ", betAmount);
+  }
 
+  const handleDeal = () => {
+    setRoundStarted(true);
+    for (let i = 0; i < 2; i++) {
+      const { name: playerCardName, value: playerCardValue } = deck.popTopCard();
+      player.hand.push(playerCardName);
+      player.value.splice(0, player.value.length, ...calculateValue(player.value, playerCardValue));
+      setPlayer({...player});
+      //console.log("PLAYER: ", player);
+
+      const { name: casinoCardName, value: casinoCardValue } = deck.popTopCard();
+      casino.hand.push(casinoCardName);
+      casino.value.splice(0, casino.value.length, ...calculateValue(casino.value, casinoCardValue));
+      setCasino({...casino});
+    }
+    
+    if (Math.max(...player.value) === 21) {
+      endRound(3);
+    }
+  }
 
   /// Function to retrieve player's money from AsyncStorage
   const getPlayerMoney = async () => {
@@ -96,6 +126,7 @@ export default function App() {
       console.error('Error getting player money:', error);
     }
   };
+  console.log(casino);
 
   // Save the player's money to AsyncStorage and update the state
   const savePlayerMoney = async (amount) => {
@@ -112,37 +143,30 @@ export default function App() {
     getPlayerMoney();
   }, []);
   console.log(deck);
-  console.log('Player Hand', playerHand);
-  console.log('Casino Hand', casinoHand);
-  console.log('roundPosition: ', roundStarted);
+  console.log('Player', player);
+  console.log('Casino', casino);
+  console.log('roundStarted: ', roundStarted);
   console.log('roundResult: ', roundResult);
-
+  
   return (
     <>
-      <SafeAreaView style = {{flex: 1, backgroundColor: 'black'}}>
-        <View style={styles.gameContainer}>
-          <CardImages placeholderImageSource={dispatch2({type:'getHand', hand: ex1})} type={'casino'}/>
-          <Description/>
-          <BetResult amount={betAmount} roundPosition={roundStarted} roundResult={resultMap[roundResult]}/>
-          <CardImages placeholderImageSource={dispatch1({type:'getHand'})} type={'player'}/>
-
-          <View style = {styles.buttonsContainer}>
-            <HitButton 
-              onClick={handleHit}
-            />
-            <StandButton 
-              onClick={handleStand}
-            />
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <SafeAreaView style = {{flex: 1, backgroundColor: 'black'}}>
+          <View style={styles.gameContainer}>
+            <CardImages placeholderImageSource={casino.hand} type={'casino'}/>
+            <Description/>
+            <BetResult amount={betAmount} roundPosition={roundStarted} roundResult={resultMap[roundResult]}/>
+            {roundStarted === true ? <CardImages placeholderImageSource={player.hand} type={'player'}/> : <EnterBet onTextChange={handleBetAmount} onDeal={handleDeal}/>}
+            <DoubleHitButtons onClick={handleHit}/>
+            <SplitStandButtons onClick={handleStand}/>
           </View>
-        </View>
 
-        <View style = {styles.bankContainer}>
-          <PlayerMoney amount={playerMoney}/>
-        </View>
-      </SafeAreaView>
+          <View style = {styles.bankContainer}>
+            <PlayerMoney amount={playerMoney}/>
+          </View>
+        </SafeAreaView>
+      </TouchableWithoutFeedback>
     </>
-    
-    
   );
 }
 

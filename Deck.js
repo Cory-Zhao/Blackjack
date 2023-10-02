@@ -14,7 +14,6 @@ export default class Deck {
         this.cards = data.reduce((acc, obj) => {
             acc[obj.id] = {
               name: `${obj.rank}_of_${obj.suit}`,
-              imageSource: obj.imageSource,
               value: obj.value,
             };
             return acc;
