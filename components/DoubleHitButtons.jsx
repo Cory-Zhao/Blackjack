@@ -1,18 +1,18 @@
 import {StyleSheet, View, Pressable, Text} from 'react-native'
 import React from 'react';
 
-export default function DoubleHitButtons({onClick}) {
+export default function DoubleHitButtons({onDouble, onHit}) {
     return (
         <View style = {styles.container}>
             <View style = {[styles.buttonContainer, {right: '100%'}]}>
-                <Pressable onPress={() => onClick()} style = {[styles.button, {backgroundColor: '#B65FCF'}]}>
+                <Pressable onPress={() => onDouble()} style = {[styles.button, {backgroundColor: '#B65FCF'}]}>
                     <Text style = {[styles.buttonLabel, {alignSelf: 'flex-end', marginRight: 5}]}>
                         {'DOUBLE'}
                     </Text>
                 </Pressable>
             </View>
             <View style = {[styles.buttonContainer, {left: '100%'}]}>
-                <Pressable onPress={() => onClick()} style = {[styles.button, {backgroundColor: '#4fc978'}]}>
+                <Pressable onPress={() => onHit()} style = {[styles.button, {backgroundColor: '#4fc978'}]}>
                     <Text style = {[styles.buttonLabel, {alignSelf: 'flex-start', marginLeft: 35}]}>
                         {'HIT'}
                     </Text>
