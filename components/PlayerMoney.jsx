@@ -1,13 +1,12 @@
 import {StyleSheet, View, Text} from 'react-native'
-import React from 'react';
 
 
 
-export default function PlayerMoney({amount}) {
+export default function PlayerMoney({playerAmount}) {
     return (
        <View style = {styles.container}>
             <View style = {styles.window}>
-                <Text style = {styles.textLabel}>{`$${amount}`}</Text>
+                <Text style = {styles.textLabel}>{`$${playerAmount}`}</Text>
             </View>
        </View>
     );
@@ -29,7 +28,6 @@ const styles = StyleSheet.create({
         height: '100%',
         alignItems: 'center',
         justifyContent: 'center',
-        flexDirection: 'row',
         backgroundColor: '#472f17',
     },
     textLabel: {

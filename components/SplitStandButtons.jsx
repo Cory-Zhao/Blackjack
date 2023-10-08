@@ -1,5 +1,4 @@
 import {StyleSheet, View, Pressable, Text} from 'react-native'
-import React from 'react';
 
 //Split functionality to be implemented
 
@@ -8,7 +7,7 @@ export default function SplitStandButtons({onClick}) {
         <View style = {styles.container}>
             <View style = {[styles.buttonContainer, {left: '180%'}]}>
                 <Pressable onPress={() => onClick()} style = {[styles.button, {backgroundColor: '#ee7600'}]}>
-                    <Text style = {[styles.buttonLabel, {alignSelf: 'center'}]}>
+                    <Text style = {styles.buttonLabel}>
                         {'STAND'}
                     </Text>
                 </Pressable>
@@ -21,7 +20,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 3,
         flexDirection: 'row',
-        justifyContent: 'flex-start',
     },
     buttonContainer: {
         width: 130,
@@ -41,5 +39,6 @@ const styles = StyleSheet.create({
         fontSize: 19,
         fontWeight: 'bold',
         opacity: 0.9,
+        alignSelf: 'center'
     },
 })

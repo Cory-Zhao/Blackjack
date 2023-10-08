@@ -23,7 +23,6 @@ export default function App() {
   const [roundResult, setRoundResult] = useState(4);
   const [playerHand, setPlayerHand] = useState([]);
   const [casinoHand, setCasinoHand] = useState([]);
-  const [stand, setStand] = useState(false);
   const [tempCard, setTempCard] = useState();
 
   const resultMap = {
@@ -49,23 +48,16 @@ export default function App() {
 
   // applies all operations needed after a round finishes
   const endRound = (result) => {
-    setRoundResult(prevResult => result);
-    console.log("Inside endRound | result: ", result);
+    setRoundResult(result);
     setRoundStarted(false);
     calculateWinnings(result);
     deck.endRound();
   }
 
-  const delay = () => {
-    setTimeout(() => {
-      console.log("Delay");
-    }, 10000);
-  }
-
   // empties the hands of the casino and player
   const emptyHands = () => {
-    setPlayerHand(prevHand => []);
-    setCasinoHand(prevHand => []);
+    setPlayerHand([]);
+    setCasinoHand([]);
     playerValue = [0];
     casinoValue = [0];
   }
@@ -99,6 +91,7 @@ export default function App() {
     console.log("HIT");
     addCard('player');
     if (playerValue.length === 0) {    // checks if player busts
+      flipCard();
       endRound(2);
     }
     else if (Math.max(...playerValue) === 21) {    // automatically stands when hand value is 21
@@ -106,13 +99,24 @@ export default function App() {
     }
   }
 
+  // swaps the 'back_of_card' with the card it represents (tempCard)
+  const flipCard = () => {
+    const nextCasinoHand = casinoHand.map((card, i) => {
+      if (i === 0) {
+        return tempCard;
+      } else {
+        return card;
+      }
+    });
+    setCasinoHand(nextCasinoHand);
+  }
+
   // runs operations caused by clicking stand button
   const handleStand = () => {
     console.log("STAND");
-    console.log("inside stand", casinoValue, Math.max(...casinoValue));
+    flipCard();
     while (Math.max(...casinoValue) < 17 && casinoValue.length > 0) {     // adds cards to casino hand until it busts or reaches at least 17
       addCard('casino');
-      console.log("inside loop",casinoValue, Math.max(...casinoValue));
     }
 
     // checks to see if casino or player wins
@@ -129,13 +133,16 @@ export default function App() {
 
   // reads in the bet amount input
   const handleBetAmount = (amount) => {
-    setBetAmount(prevAmount => amount);
+    setBetAmount(amount);
   }
 
   // deducts the input amount from the bank and saves the new balance and will return false if the deducted exceeds the balance
   const deductFromBank = (amount) => {
     try {
-      if (amount > playerMoney) {
+      if (isNaN(amount)) {
+        throw new Error("Bet amount is not a number");
+      }
+      else if (amount > playerMoney) {
         throw new Error("Insufficient funds");
       }
       else if (amount <= 0) {
@@ -150,11 +157,13 @@ export default function App() {
     }
   }
 
+  // deals the cards in the start of the round
   const dealCards = () => {
+    emptyHands();
     setCasinoHand(prevHand => [...prevHand, 'back_of_card']);
     const { name: cardName, value: cardValue } = deck.popTopCard();
     casinoValue = calculateValue(casinoValue, cardValue);
-    setTempCard(prev => (cardName));
+    setTempCard(cardName);
     addCard('player');
     addCard('casino');
     addCard('player');
@@ -167,18 +176,18 @@ export default function App() {
       return;
     }
     setRoundStarted(true);    
-    emptyHands();
     dealCards();
 
-    console.log("max player value", playerValue, Math.max(...playerValue));
-    console.log("max casino value", casinoValue, Math.max(...casinoValue));
     if (Math.max(...playerValue) === 21 && Math.max(...casinoValue) === 21) {     // pushes if both hands are dealt blackjack
+      flipCard();
       endRound(1);
     }
     else if (Math.max(...playerValue) === 21) {    // automatic player blackjack win
+      flipCard();
       endRound(3);
     }
     else if (Math.max(...casinoValue) === 21) {    // automatic casino blackjack win
+      flipCard();
       endRound(2);
     }
   }
@@ -188,7 +197,7 @@ export default function App() {
     try {
       const storedMoney = await AsyncStorage.getItem('playerMoney');
       if (storedMoney !== null) {
-        setPlayerMoney(prevAmount => parseInt(storedMoney));
+        setPlayerMoney(parseInt(storedMoney));
       }
       console.log(`Getting Player's money | Amount: $${storedMoney}`);
     } catch (error) {
@@ -200,7 +209,7 @@ export default function App() {
   const savePlayerMoney = async (amount) => {
     try {
       await AsyncStorage.setItem('playerMoney', amount.toString());
-      setPlayerMoney(prevAmount => amount);
+      setPlayerMoney(amount);
     } catch (error) {
       console.error('Error saving player money:', error);
     }
@@ -211,14 +220,6 @@ export default function App() {
     getPlayerMoney();
   }, []);
 
-  /*console.log(deck);
-  console.log('Player Hand', playerHand);
-  console.log('Player Value', playerValue);
-  console.log('Casino Hand', casinoHand);
-  console.log('Casino Value', casinoValue);
-  console.log('roundStarted: ', roundStarted);
-  console.log('roundResult: ', roundResult);
-  console.log('Bet amount:', betAmount);*/
   console.log('Player Hand', playerHand);
   console.log('Casino Hand', casinoHand);
   console.log('Temp Card', tempCard);
@@ -227,10 +228,10 @@ export default function App() {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <SafeAreaView style = {{flex: 1, backgroundColor: 'black'}}>
           <View style={styles.gameContainer}>
-            <CardImages placeholderImageSource={casinoHand} type={'casino'}/>
+            <CardImages imageSource={casinoHand} type={'casino'}/>
             <Description/>
-            <BetResult amount={betAmount} roundPosition={roundStarted} roundResult={resultMap[roundResult]} value={playerValue}/>
-            <CardImages placeholderImageSource={playerHand} type={'player'}/>
+            <BetResult betAmount={betAmount} roundPosition={roundStarted} roundResult={resultMap[roundResult]} handValue={playerValue}/>
+            <CardImages imageSource={playerHand} type={'player'}/>
             {roundStarted === true 
             ? 
               <>
@@ -241,7 +242,7 @@ export default function App() {
               <EnterBet onTextChange={handleBetAmount} onDeal={handleDeal}/>}
           </View>
           <View style = {styles.bankContainer}>
-            <PlayerMoney amount={playerMoney}/>
+            <PlayerMoney playerAmount={playerMoney}/>
           </View>
         </SafeAreaView>
       </TouchableWithoutFeedback>
@@ -267,26 +268,3 @@ const styles = StyleSheet.create({
     flex: 6,
   }
 });
-
-
-/*
-export default function App() {
-  console.log("hello");
-  return (
-    <View style={styles.container}>
-      <Text>  App.tsx to start  on! Now</Text>
-      <StatusBar style="auto" />
-      <CardImages placeholderImageSource={['3_of_diamonds']}></CardImages>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
-*/

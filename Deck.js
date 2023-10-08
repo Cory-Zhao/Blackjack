@@ -1,4 +1,5 @@
 // Deck.js
+
 import data from './deck.json';
 export default class Deck {
     constructor() {

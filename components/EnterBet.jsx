@@ -1,16 +1,14 @@
-import {StyleSheet, View, Text, TextInput, Pressable} from 'react-native'
-import React from 'react';
-
+import {StyleSheet, View, Text, TextInput, Pressable, KeyboardAvoidingView} from 'react-native'
 
 export default function EnterBet({onTextChange, onDeal}) {
     return (
-            <View style = {styles.container}>
+            <KeyboardAvoidingView style = {styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
                 <View style = {styles.window}>
                     <View style = {styles.fill}>
                         <Text style = {styles.textLabel}>
                             {'Enter Bet Amount: '}
                         </Text>
-                        <TextInput style = {styles.textBox} placeholder='e.g. 100' keyboardType='numeric' onChangeText={(amount) => onTextChange(amount)}/>
+                        <TextInput style = {styles.inputTextBox} placeholder='e.g. 100' keyboardType='numeric' onChangeText={(amount) => onTextChange(amount)}/>
                         <Pressable style = {styles.button} onPress={() => onDeal()}>
                             <Text style = {styles.buttonText}>
                                 {'DEAL'}
@@ -18,7 +16,7 @@ export default function EnterBet({onTextChange, onDeal}) {
                         </Pressable>
                     </View>
                 </View>
-            </View>        
+            </KeyboardAvoidingView>        
     );
 }
 
@@ -32,14 +30,13 @@ const styles = StyleSheet.create({
         height: '75%',
         borderWidth: 2, 
         borderColor: 'white',
-        justifyContent: 'center',
         borderRadius: 10,
     },
     fill: {
         width: '100%',
         height: '100%',
         backgroundColor: '#A8A8A8',
-        borderRadius: 10,
+        borderRadius: 7,
         opacity: 0.9
     },
     textLabel: {
@@ -51,7 +48,7 @@ const styles = StyleSheet.create({
         marginTop: 10,
         marginBottom: 10,
     },
-    textBox: {
+    inputTextBox: {
         borderWidth: 1,
         borderColor: '#777',
         width: '40%',

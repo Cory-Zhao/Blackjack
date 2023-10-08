@@ -12,11 +12,3 @@ export const calculateValue = (hand, newCard) => {
   }
   return [...newPossibleValues];
 }
-
-export const calculateMax = (hand) => {
-    let max = 0;
-    if (hand.length === 2) {
-        
-    }
-}
-

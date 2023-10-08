@@ -1,6 +1,4 @@
-import {StyleSheet, View, Text, Dimensions} from 'react-native'
-import React from 'react';
-
+import {StyleSheet, View, Text} from 'react-native'
 
 export default function Description() {
     return (
@@ -24,13 +22,13 @@ const styles = StyleSheet.create({
         borderBottomColor: 'white',
         borderBottomWidth: 2.5,
         alignSelf: 'stretch',
-        opacity: 0.4
+        opacity: 0.4,
     },
     text: {
         fontFamily: 'Arial',
         fontWeight: '700',
         alignSelf: 'center',
         opacity: 0.4,
-        flex: 1
+        flex: 1,
     },
 })

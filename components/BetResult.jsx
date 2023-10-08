@@ -1,8 +1,6 @@
 import {StyleSheet, View, Text} from 'react-native'
-import React from 'react';
 
-
-export default function BetResult({amount, roundPosition, roundResult, value}) {
+export default function BetResult({betAmount, roundPosition, roundResult, handValue}) {
     return (
         <View style = {styles.container}>
             <View style = {styles.window}>
@@ -15,7 +13,7 @@ export default function BetResult({amount, roundPosition, roundResult, value}) {
                                     BET: 
                                 </Text>
                                 <Text style = {[styles.textLabel, {color: '#F9E076'}]}>
-                                    {` $${amount}`}
+                                    {` $${betAmount}`}
                                 </Text>
                             </View>
                             <View style = {styles.textContainer}>
@@ -23,7 +21,7 @@ export default function BetResult({amount, roundPosition, roundResult, value}) {
                                     Value: 
                                 </Text>
                                 <Text style = {[styles.textLabel, {color: '#F9E076'}]}>
-                                    {` ${value}`}
+                                    {` ${handValue}`}
                                 </Text>
                             </View>
                             
@@ -45,6 +43,7 @@ const styles = StyleSheet.create({
     container: {
         marginTop: 10,
         flex: 1,
+        minHeight: 10,
         alignSelf: 'stretch',
     },
     window: {
@@ -73,7 +72,7 @@ const styles = StyleSheet.create({
     textLabel: {
         fontFamily: 'Arial',
         fontWeight: '700',
-        fontSize: 15
+        fontSize: 17
     },
     
 })

@@ -1,10 +1,10 @@
 import {StyleSheet, Image, View} from 'react-native'
 import { CARD_IMAGES } from '../Images';
 
-export default function CardImages({placeholderImageSource, type}) {
+export default function CardImages({imageSource, type}) {
     return (
         <View style = {type === 'casino' ? styles.casinoContainer : styles.playerContainer}>
-            {placeholderImageSource.map((item) => (
+            {imageSource.map((item) => (
                 <Image source={CARD_IMAGES[item]} style = {type === 'casino' ? styles.casinoCard : styles.playerCard} key={item}/>
             ))}
         </View>
@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
         height: 185,
         minWidth: 115,
         maxWidth: 115,
-        borderRadius: 4,
+        borderRadius: 8,
         resizeMode: 'stretch',
     },
     casinoCard: {
@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
         height: 130,
         minWidth: 85,
         maxWidth: 85,
-        borderRadius: 4,
+        borderRadius: 8,
         resizeMode: 'stretch',
     },
 });
