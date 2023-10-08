@@ -6,14 +6,14 @@ export default function DoubleHitButtons({onDouble, onHit}) {
         <View style = {styles.container}>
             <View style = {[styles.buttonContainer, {right: '100%'}]}>
                 <Pressable onPress={() => onDouble()} style = {[styles.button, {backgroundColor: '#B65FCF'}]}>
-                    <Text style = {[styles.buttonLabel, {alignSelf: 'flex-end', marginRight: 5}]}>
+                    <Text style = {[styles.buttonLabel, {alignSelf: 'center',/* marginRight: 5*/}]}>
                         {'DOUBLE'}
                     </Text>
                 </Pressable>
             </View>
             <View style = {[styles.buttonContainer, {left: '100%'}]}>
                 <Pressable onPress={() => onHit()} style = {[styles.button, {backgroundColor: '#4fc978'}]}>
-                    <Text style = {[styles.buttonLabel, {alignSelf: 'flex-start', marginLeft: 35}]}>
+                    <Text style = {[styles.buttonLabel, {alignSelf: 'center', /*marginLeft: 35*/}]}>
                         {'HIT'}
                     </Text>
                 </Pressable>
@@ -27,10 +27,10 @@ const styles = StyleSheet.create({
     container: {
         flex: 3,
         flexDirection: 'row',
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
     },
     buttonContainer: {
-        width: 175,
+        width: 130,
         height: 55,
         borderWidth: 4, 
         borderColor: 'white',
@@ -45,6 +45,7 @@ const styles = StyleSheet.create({
     buttonLabel: {
         color: 'white',
         fontSize: 19,
-        opacity: 0.8,
+        fontWeight: 'bold',
+        opacity: 0.9,
     },
 })

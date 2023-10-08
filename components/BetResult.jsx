@@ -2,7 +2,7 @@ import {StyleSheet, View, Text} from 'react-native'
 import React from 'react';
 
 
-export default function BetResult({amount, roundPosition, roundResult}) {
+export default function BetResult({amount, roundPosition, roundResult, value}) {
     return (
         <View style = {styles.container}>
             <View style = {styles.window}>
@@ -10,12 +10,23 @@ export default function BetResult({amount, roundPosition, roundResult}) {
                     {roundPosition === true
                     ? 
                         <>
-                            <Text style = {[styles.textLabel, {color: 'white'}]}>
-                                BET: 
-                            </Text>
-                            <Text style = {[styles.textLabel, {color: '#F9E076'}]}>
-                                {`$${amount}`}
-                            </Text>
+                            <View style = {styles.textContainer}>
+                                <Text style = {[styles.textLabel, {color: 'white'}]}>
+                                    BET: 
+                                </Text>
+                                <Text style = {[styles.textLabel, {color: '#F9E076'}]}>
+                                    {` $${amount}`}
+                                </Text>
+                            </View>
+                            <View style = {styles.textContainer}>
+                                <Text style = {[styles.textLabel, {color: 'white'}]}>
+                                    Value: 
+                                </Text>
+                                <Text style = {[styles.textLabel, {color: '#F9E076'}]}>
+                                    {` ${value}`}
+                                </Text>
+                            </View>
+                            
                         </> 
                     : 
                         <>
@@ -53,6 +64,11 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         backgroundColor: '#40aa00',
         borderRadius: 10,
+    },
+    textContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        flexDirection: 'row',
     },
     textLabel: {
         fontFamily: 'Arial',

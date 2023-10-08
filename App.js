@@ -1,4 +1,3 @@
-import { StatusBar } from 'expo-status-bar';
 import React, {useState, useEffect} from 'react';
 import { StyleSheet, Text, View, TouchableWithoutFeedback, SafeAreaView, Keyboard } from 'react-native';
 import DoubleHitButtons from './components/DoubleHitButtons';
@@ -10,11 +9,11 @@ import CardImages from './components/CardImages';
 import EnterBet from './components/EnterBet';
 import Deck from './Deck';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { calculateValue } from './Hand';
 
 let deck = new Deck();
-//let playerValue = [0];
-//let casinoValue = [0];
+let playerValue = [0];
+let casinoValue = [0];
 
 export default function App() {
   console.log("App Rerendered"); 
@@ -23,23 +22,9 @@ export default function App() {
   const [playerMoney, setPlayerMoney] = useState(0);
   const [roundResult, setRoundResult] = useState(4);
   const [playerHand, setPlayerHand] = useState([]);
-  const [playerValue, setPlayerValue] = useState([0]);
   const [casinoHand, setCasinoHand] = useState([]);
-  const [casinoValue, setCasinoValue] = useState([0]);
-
-
-  // calculates the hand value after adding a new card
-  const calculateValue = (hand, newCard) => {
-    const newPossibleValues = new Set();
-    for (const possibleValue of hand) {
-        for (const cardValue of newCard) {
-            if (possibleValue + cardValue <= 21) {
-                newPossibleValues.add(possibleValue + cardValue);
-            }
-        }
-    }
-    return [...newPossibleValues];
-  }
+  const [stand, setStand] = useState(false);
+  const [tempCard, setTempCard] = useState();
 
   const resultMap = {
     0: 'You Win!',
@@ -81,8 +66,8 @@ export default function App() {
   const emptyHands = () => {
     setPlayerHand(prevHand => []);
     setCasinoHand(prevHand => []);
-    setPlayerValue(prevValue => [0]);
-    setCasinoValue(prevValue => [0]);
+    playerValue = [0];
+    casinoValue = [0];
   }
 
   // runs operations caused by clicking double button
@@ -96,44 +81,27 @@ export default function App() {
     handleStand();
   }
 
-  // adds card from deck to either casino or player
+  // adds card from deck to either casino or player and returns the hand value
   const addCard = (state) => {
     const { name: cardName, value: cardValue } = deck.popTopCard();
     if (state === 'player') {
-      setPlayerHand(prevHand => ([...prevHand, cardName]));
-      setPlayerValue(prevValue => {
-        const newValue = calculateValue(prevValue, cardValue);
-        console.log(newValue);
-        return newValue;
-      });
+      playerValue = calculateValue(playerValue, cardValue);
+      setPlayerHand(prevHand => [...prevHand, cardName]);
     }
     if (state === 'casino') {
+      casinoValue = calculateValue(casinoValue, cardValue);
       setCasinoHand(prevHand => [...prevHand, cardName]);
-      setCasinoValue(prevValue => {
-        const newValue = calculateValue(prevValue, cardValue);
-        console.log(newValue);
-        return newValue;
-      });
-      console.log("NEW", casinoValue);
     }
-  }
-
-  const afterHit = () => {
-    console.log("In afterHit", playerHand);
   }
 
   // runs operations caused by clicking hit button
   const handleHit = () => {
     console.log("HIT");
     addCard('player');
-    console.log("AFTERHIT", playerHand);
-    afterHit();
     if (playerValue.length === 0) {    // checks if player busts
-      console.log("INSIDE BUST FROM HIT");
       endRound(2);
     }
-    else if (Math.max(playerValue) === 21) {    // automatically stands when hand value is 21
-      console.log("INSIDE");
+    else if (Math.max(...playerValue) === 21) {    // automatically stands when hand value is 21
       handleStand();
     }
   }
@@ -141,18 +109,17 @@ export default function App() {
   // runs operations caused by clicking stand button
   const handleStand = () => {
     console.log("STAND");
+    console.log("inside stand", casinoValue, Math.max(...casinoValue));
     while (Math.max(...casinoValue) < 17 && casinoValue.length > 0) {     // adds cards to casino hand until it busts or reaches at least 17
-      //console.log("INSIDE LOOP", casinoHand[casinoHand.length - 1]);
-      //console.log("INSIDE LOOP", casinoValue[casinoValue.length - 1]);
-      //addCard('casino');
-      setUpdate(update + 1);
+      addCard('casino');
+      console.log("inside loop",casinoValue, Math.max(...casinoValue));
     }
 
     // checks to see if casino or player wins
-    if (casinoValue.length === 0 || Math.max(casinoValue) < Math.max(playerValue)) {
+    if (casinoValue.length === 0 || Math.max(...casinoValue) < Math.max(...playerValue)) {
       endRound(0);
     }
-    else if (Math.max(casinoValue) == Math.max(playerValue)) {
+    else if (Math.max(...casinoValue) == Math.max(...playerValue)) {
       endRound(1);
     }
     else {
@@ -163,7 +130,6 @@ export default function App() {
   // reads in the bet amount input
   const handleBetAmount = (amount) => {
     setBetAmount(prevAmount => amount);
-    console.log("Bet Amount: ", betAmount);
   }
 
   // deducts the input amount from the bank and saves the new balance and will return false if the deducted exceeds the balance
@@ -171,6 +137,9 @@ export default function App() {
     try {
       if (amount > playerMoney) {
         throw new Error("Insufficient funds");
+      }
+      else if (amount <= 0) {
+        throw new Error("Bet amount must be greater than 0");
       }
       setPlayerMoney(prevAmount => prevAmount - amount);   // Deduct the amount from the bank's cash
       console.log(`Transaction successful. Remaining balance: ${playerMoney}`);
@@ -181,6 +150,16 @@ export default function App() {
     }
   }
 
+  const dealCards = () => {
+    setCasinoHand(prevHand => [...prevHand, 'back_of_card']);
+    const { name: cardName, value: cardValue } = deck.popTopCard();
+    casinoValue = calculateValue(casinoValue, cardValue);
+    setTempCard(prev => (cardName));
+    addCard('player');
+    addCard('casino');
+    addCard('player');
+  }
+
   // starts the round
   const handleDeal = () => {
     console.log("BET AMOUNT", betAmount);
@@ -189,17 +168,17 @@ export default function App() {
     }
     setRoundStarted(true);    
     emptyHands();
-    for (let i = 0; i < 2; i++) {
-      addCard('player');
-      addCard('casino');
-    }
-    if (Math.max(playerValue) === 21 && Math.max(casinoValue) === 21) {     // pushes if both hands are dealt blackjack
+    dealCards();
+
+    console.log("max player value", playerValue, Math.max(...playerValue));
+    console.log("max casino value", casinoValue, Math.max(...casinoValue));
+    if (Math.max(...playerValue) === 21 && Math.max(...casinoValue) === 21) {     // pushes if both hands are dealt blackjack
       endRound(1);
     }
-    else if (Math.max(playerValue) === 21) {    // automatic player blackjack win
+    else if (Math.max(...playerValue) === 21) {    // automatic player blackjack win
       endRound(3);
     }
-    else if (Math.max(casinoValue) === 21) {    // automatic casino blackjack win
+    else if (Math.max(...casinoValue) === 21) {    // automatic casino blackjack win
       endRound(2);
     }
   }
@@ -232,13 +211,17 @@ export default function App() {
     getPlayerMoney();
   }, []);
 
-  console.log(deck);
+  /*console.log(deck);
   console.log('Player Hand', playerHand);
   console.log('Player Value', playerValue);
   console.log('Casino Hand', casinoHand);
   console.log('Casino Value', casinoValue);
   console.log('roundStarted: ', roundStarted);
   console.log('roundResult: ', roundResult);
+  console.log('Bet amount:', betAmount);*/
+  console.log('Player Hand', playerHand);
+  console.log('Casino Hand', casinoHand);
+  console.log('Temp Card', tempCard);
   return (
     <>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
@@ -246,11 +229,17 @@ export default function App() {
           <View style={styles.gameContainer}>
             <CardImages placeholderImageSource={casinoHand} type={'casino'}/>
             <Description/>
-            <BetResult amount={betAmount} roundPosition={roundStarted} roundResult={resultMap[roundResult]}/>
+            <BetResult amount={betAmount} roundPosition={roundStarted} roundResult={resultMap[roundResult]} value={playerValue}/>
             <CardImages placeholderImageSource={playerHand} type={'player'}/>
-            {roundStarted === true ? <><DoubleHitButtons onDouble={handleDouble} onHit={handleHit}/><SplitStandButtons onClick={handleStand}/></> : <EnterBet onTextChange={handleBetAmount} onDeal={handleDeal}/>}
+            {roundStarted === true 
+            ? 
+              <>
+                <DoubleHitButtons onDouble={handleDouble} onHit={handleHit}/>
+                <SplitStandButtons onClick={handleStand}/>
+              </> 
+            : 
+              <EnterBet onTextChange={handleBetAmount} onDeal={handleDeal}/>}
           </View>
-
           <View style = {styles.bankContainer}>
             <PlayerMoney amount={playerMoney}/>
           </View>
