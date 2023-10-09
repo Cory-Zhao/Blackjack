@@ -4,4 +4,5 @@ This app is made using react native and expo. It represents the single deck, sin
 
 ### How it looks
 ![IMG_0219_1_325x703](https://github.com/Cory-Zhao/Blackjack/assets/91992519/e7c60b07-3890-454c-b617-5ef40410bc65)
+![IMG_0224_325x703](https://github.com/Cory-Zhao/Blackjack/assets/91992519/e10f84ce-b8e2-443c-a3cf-fb18d45e3207)
 
