@@ -1,5 +1,5 @@
-import React, {useState, useEffect} from 'react';
-import { StyleSheet, Text, View, TouchableWithoutFeedback, SafeAreaView, Keyboard } from 'react-native';
+import {useState, useEffect} from 'react';
+import { StyleSheet, View, TouchableWithoutFeedback, SafeAreaView, Keyboard } from 'react-native';
 import DoubleHitButtons from './components/DoubleHitButtons';
 import SplitStandButtons from './components/SplitStandButtons';
 import PlayerMoney from './components/PlayerMoney';
@@ -16,7 +16,6 @@ let playerValue = [0];
 let casinoValue = [0];
 
 export default function App() {
-  console.log("App Rerendered"); 
   const [roundStarted, setRoundStarted] = useState(false);
   const [betAmount, setBetAmount] = useState(0);
   const [playerMoney, setPlayerMoney] = useState(0);
@@ -41,6 +40,9 @@ export default function App() {
     else if (result === 1) {
       savePlayerMoney(playerMoney + parseInt(betAmount));
     }
+    else if (result === 2) {
+      savePlayerMoney(playerMoney);
+    }
     else if (result === 3) {
       savePlayerMoney(playerMoney + (3/2) * parseInt(betAmount));
     }
@@ -62,15 +64,16 @@ export default function App() {
     casinoValue = [0];
   }
 
-  // runs operations caused by clicking double button
-  const handleDouble = () => {
-    console.log("DOUBLE");
-    if (!deductFromBank(betAmount)) {     // check if the double amount exceeds possible funds
-      return;
-    }
-    addCard('player');
-    setBetAmount(prevAmount => prevAmount * 2);
-    handleStand();
+  // swaps the 'back_of_card' with the card it represents (tempCard)
+  const flipCard = () => {
+    const nextCasinoHand = casinoHand.map((card, i) => {
+      if (i === 0) {
+        return tempCard;
+      } else {
+        return card;
+      }
+    });
+    setCasinoHand(nextCasinoHand);
   }
 
   // adds card from deck to either casino or player and returns the hand value
@@ -86,9 +89,53 @@ export default function App() {
     }
   }
 
+  // deals the cards in the start of the round
+  const dealCards = () => {
+    emptyHands();
+    setCasinoHand(prevHand => [...prevHand, 'back_of_card']);
+    const { name: cardName, value: cardValue } = deck.popTopCard();
+    casinoValue = calculateValue(casinoValue, cardValue);
+    setTempCard(cardName);
+    addCard('player');
+    addCard('casino');
+    addCard('player');
+  }
+
+  // starts the round
+  const handleDeal = () => {
+    console.log("BET AMOUNT", betAmount);
+    if (!deductFromBank(betAmount)) {     // check if the bet amount exceeds possible funds
+      return;
+    }
+    setRoundStarted(true);    
+    dealCards();
+
+    if (Math.max(...playerValue) === 21 && Math.max(...casinoValue) === 21) {     // pushes if both hands are dealt blackjack
+      flipCard();
+      endRound(1);
+    }
+    else if (Math.max(...playerValue) === 21) {    // automatic player blackjack win
+      flipCard();
+      endRound(3);
+    }
+    else if (Math.max(...casinoValue) === 21) {    // automatic casino blackjack win
+      flipCard();
+      endRound(2);
+    }
+  }
+
+  // runs operations caused by clicking double button
+  const handleDouble = () => {
+    if (!deductFromBank(betAmount)) {     // check if the double amount exceeds possible funds
+      return;
+    }
+    addCard('player');
+    setBetAmount(prevAmount => prevAmount * 2);
+    handleStand();
+  }
+
   // runs operations caused by clicking hit button
   const handleHit = () => {
-    console.log("HIT");
     addCard('player');
     if (playerValue.length === 0) {    // checks if player busts
       flipCard();
@@ -99,21 +146,8 @@ export default function App() {
     }
   }
 
-  // swaps the 'back_of_card' with the card it represents (tempCard)
-  const flipCard = () => {
-    const nextCasinoHand = casinoHand.map((card, i) => {
-      if (i === 0) {
-        return tempCard;
-      } else {
-        return card;
-      }
-    });
-    setCasinoHand(nextCasinoHand);
-  }
-
   // runs operations caused by clicking stand button
   const handleStand = () => {
-    console.log("STAND");
     flipCard();
     while (Math.max(...casinoValue) < 17 && casinoValue.length > 0) {     // adds cards to casino hand until it busts or reaches at least 17
       addCard('casino');
@@ -157,41 +191,6 @@ export default function App() {
     }
   }
 
-  // deals the cards in the start of the round
-  const dealCards = () => {
-    emptyHands();
-    setCasinoHand(prevHand => [...prevHand, 'back_of_card']);
-    const { name: cardName, value: cardValue } = deck.popTopCard();
-    casinoValue = calculateValue(casinoValue, cardValue);
-    setTempCard(cardName);
-    addCard('player');
-    addCard('casino');
-    addCard('player');
-  }
-
-  // starts the round
-  const handleDeal = () => {
-    console.log("BET AMOUNT", betAmount);
-    if (!deductFromBank(betAmount)) {     // check if the bet amount exceeds possible funds
-      return;
-    }
-    setRoundStarted(true);    
-    dealCards();
-
-    if (Math.max(...playerValue) === 21 && Math.max(...casinoValue) === 21) {     // pushes if both hands are dealt blackjack
-      flipCard();
-      endRound(1);
-    }
-    else if (Math.max(...playerValue) === 21) {    // automatic player blackjack win
-      flipCard();
-      endRound(3);
-    }
-    else if (Math.max(...casinoValue) === 21) {    // automatic casino blackjack win
-      flipCard();
-      endRound(2);
-    }
-  }
-
   // retrieve player's money from AsyncStorage
   const getPlayerMoney = async () => {
     try {
@@ -199,6 +198,7 @@ export default function App() {
       if (storedMoney !== null) {
         setPlayerMoney(parseInt(storedMoney));
       }
+      return parseInt(storedMoney);
       console.log(`Getting Player's money | Amount: $${storedMoney}`);
     } catch (error) {
       console.error('Error getting player money:', error);
@@ -208,6 +208,9 @@ export default function App() {
   // Save the player's money to AsyncStorage and update the state
   const savePlayerMoney = async (amount) => {
     try {
+      if (amount === 0) {
+        amount = 1000;
+      }
       await AsyncStorage.setItem('playerMoney', amount.toString());
       setPlayerMoney(amount);
     } catch (error) {
@@ -220,9 +223,6 @@ export default function App() {
     getPlayerMoney();
   }, []);
 
-  console.log('Player Hand', playerHand);
-  console.log('Casino Hand', casinoHand);
-  console.log('Temp Card', tempCard);
   return (
     <>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
