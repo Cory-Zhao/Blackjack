@@ -1,6 +1,6 @@
 # Blackjack
 
-This app is made using react native and expo. It represents the single deck, single player blackjack game. The code includes state manipulation, hooks and events, reading in deck information from a json, and accessing card images from a file. $1000 will automatically be given to the player if the player happens to go broke. 
+This application is developed using React Native and Expo, offering a streamlined experience for a single deck, single player blackjack game. The codebase incorporates advanced techniques such as state manipulation, hooks, and event handling. It efficiently reads deck information from a JSON file and accesses card images stored in a local directory. Additionally, to enhance the gaming experience, players are automatically provided with $1000 in virtual currency if their balance reaches zero, ensuring uninterrupted gameplay.
 
 ### How it looks
 ![IMG_0219_1_325x703](https://github.com/Cory-Zhao/Blackjack/assets/91992519/e7c60b07-3890-454c-b617-5ef40410bc65) 
