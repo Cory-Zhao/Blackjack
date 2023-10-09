@@ -221,6 +221,9 @@ export default function App() {
   // Load the player's money when the component mounts
   useEffect(() => {
     getPlayerMoney();
+    if (playerMoney === 0) {
+      savePlayerMoney(1000);
+    }
   }, []);
 
   return (
