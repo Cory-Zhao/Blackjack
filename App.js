@@ -196,7 +196,10 @@ export default function App() {
     try {
       const storedMoney = await AsyncStorage.getItem('playerMoney');
       if (storedMoney !== null) {
-        setPlayerMoney(parseInt(storedMoney));
+        if (storedMoney === 0) {
+          setPlayerMoney(1000);
+        }
+        else setPlayerMoney(parseInt(storedMoney));
       }
       return parseInt(storedMoney);
       console.log(`Getting Player's money | Amount: $${storedMoney}`);
