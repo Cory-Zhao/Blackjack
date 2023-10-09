@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     },
     buttonLabel: {
         color: 'white',
-        fontSize: 19,
+        fontSize: 17,
         fontWeight: 'bold',
         opacity: 0.9,
         alignSelf: 'center'
